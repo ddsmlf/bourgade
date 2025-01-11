@@ -1,0 +1,221 @@
+
+\vspace*{-0.9cm}
+\section*{II - Version de base}
+\addcontentsline{toc}{section}{II - Version de base}
+\subsection*{Les couleurs, les ressources et les employés}
+\addcontentsline{toc}{subsection}{Les couleurs, les ressources et les employés}
+\subsubsection*{Les couleurs}
+Nous devions dans un premier temps implémenter les méthodes nécessaires à l'affichage des couleurs de notre plateau.
+Pour ce faire, nous avons créé un simple \texttt{enum} pour les couleurs (\texttt{\textcolor{black}{BLACK}, \textcolor{gray}{WHITE}, \textcolor{orange}{ORANGE}, \textcolor{pink}{PINK}, \textcolor{violet}{VIOLET}, \textcolor{yellow}{YELLOW}, \textcolor{blue}{BLUE}, \textcolor{brown}{BROWN}, \textcolor{green}{GREEN}, \textcolor{red}{RED}, \textcolor{gray}{SHINY}}) et complété les fonctions proposées afin de pouvoir les utiliser pour afficher les couleurs dans le terminal.\\ \\
+Après observation des métriques sur Thor, nous avons optimisé ces fonctions qui avaient une forte complexité cyclomatique.
+À l'origine, nous parcourions chaque possibilité avec des conditions (\texttt{IF}) pour chaque couleur ce qui générait une complexité temporelle pour chacune de ces fonctions \(\mathcal{O}(n)\) linéaire pour \(n\) le nombre de couleurs. Pour rendre cette complexité constante, nous avons implémenté un tableau contenant les valeurs des codes couleurs ANSI à l'indice du numéro de la couleur pour ainsi directement aller le chercher à son emplacement mémoire.\\ \\
+En appliquant cette méthode, nous avons cependant augmenté la complexité en espace de ces fonctions qui est maintenant linéaire par rapport au nombre de couleurs. C'est un compromis que nous avons jugé acceptable car le nombre de couleurs est fixe et relativement faible.
+
+\subsubsection*{Les ressources}
+Pour le bon déroulement de la partie, les joueurs ont besoin de manipuler des ressources.
+Elles sont au nombre de \texttt{MAX\textunderscore RESOURCES} et sont représentées par un \texttt{enum} contenant l'ensemble des ressources. \\ \\
+Le fichier \texttt{resources.c} rassemble l'ensemble des fonctions nécessaires à la manipulation des ressources.\\
+Nous étudierons ici uniquement la fonction de comparaison des vecteurs de ressources présentée en listing~\ref{lst:resource_comparison}.
+
+\begin{lstlisting}[style=customstyle]
+fonction ressources_inf_ou_egales(r1[NUM_RESOURCES], r2[NUM_RESOURCES]):
+    pour i allant de 0 a NUM_RESOURCES - 1 :
+        si r1[i] > r2[i] :
+            retourner 0;
+        fin si;
+    fin pour;
+    retourner 1;
+fin fonction;
+\end{lstlisting}
+\vspace{-0.25cm}
+\captionof{lstlisting}{Fonction de comparaison des vecteurs de ressources}
+\label{lst:resource_comparison}
+\vspace{0.5cm}
+La fonction \texttt{resource\_le\_than} prend en paramètre deux tableaux de taille \texttt{NUM\textunderscore RESOURCES} et renvoie 1 si le premier est inférieur ou égal au second, 0 sinon.\\
+Cette fonction a une complexité en temps linéaire \(\mathcal{O}(n)\) pour \(n\) le nombre de ressources.
+Elle parcourt chaque indice des vecteurs de ressources un à un et quand le \texttt{r1} a une valeur plus élevée que \texttt{r2} on renvoie \(0\).
+
+\subsubsection*{Les employés}
+Les joueurs doivent pouvoir poser des employés sur le plateau durant la partie.
+Nous les avons représentés avec une structure \texttt{employee} (visible en listing \ref{lst:employee_structure}).
+\begin{lstlisting}[language=C, backgroundcolor=\color{black!5}, frame=single, frameround=tttt, basicstyle=\ttfamily, breaklines=true, keywordstyle=\color{blue}, commentstyle=\color{green!50!black}, stringstyle=\color{red}]
+struct employee_t {
+    char name[MAX_NAME];
+    struct position_t* position;
+    unsigned int cost[NUM_RESOURCES];
+};
+\end{lstlisting}
+\vspace{-0.25cm}
+\captionof{lstlisting}{Structure des employés}
+\label{lst:employee_structure}
+\vspace{0.5cm}
+Afin de les manipuler, nous avons implémenté des fonctions permettant de créer un employé et de l'afficher. Les autres actions seront directement effectuées via la modification de contenu de la structure.
+
+\subsection*{Les positions}
+\addcontentsline{toc}{subsection}{Les positions}
+\label{sec:pos}
+Le plateau de jeu est composé de \texttt{MAX\_POSITIONS (MAX\_X\(\times\)MAX\_Y)} cases de coordonnées \((X,Y)\) qui ont 8 cases voisines. On considère actuellement qu'une case est voisine d'une autre case si elle est à côté ou en diagonale de celle-ci (d'autres versions seront discutées dans la section \hyperref[sec:ore]{\uline{orée rouge émerveillant}}).\\ \\
+Pour répondre à ce besoin, nous avons utilisé deux variables globales statiques~: \textcolor{enseirb}{\texttt{positions}} qui est un tableau de l'ensemble des positions \((x,y)\) de notre plateau et \textcolor{enseirb}{\texttt{invalid}} qui est une position invalide sur notre plateau \((-1,-1)\).
+La fonction \texttt{init\_positions} permet d'initialiser le contenu de la variable globale \textcolor{enseirb}{\texttt{positions}}.\\
+Pour facilement faire la correspondance entre une position \((x,y)\) et un indice dans la liste des positions, nous avons appliqué une méthode de calcul réversible. Soit \(i\) l'indice de la position dans la liste des positions, nous avons les formules suivantes pour obtenir les coordonnées \((x,y)\)~:
+\vspace{0.05cm}
+\begin{center}
+    \begin{tabular}{@{}l@{\hskip 2cm}l@{}}
+        \(x = i \bmod (MAX\_X)\) & \(y = \left\lfloor \frac{i}{MAX\_X} \right\rfloor\)
+    \end{tabular}
+\end{center}
+\vspace{0.05cm}
+À l'inverse, pour obtenir l'indice \(i\) à partir des coordonnées \((x,y)\), nous utilisons la formule suivante~:
+\begin{center}
+    \(i = y \times (MAX\_X) + x\)
+\end{center}
+\vspace{-1cm}
+\subsubsection{La validité des positions}
+À partir de ces éléments, nous avons implémenté les fonctions qui permettent de créer une position, obtenir ses coordonnées, l'afficher et vérifier si elle est valide. Pour vérifier si une position est valide, nous avons identifié 3 méthodes différentes~:
+\begin{enumerate}
+    \item Vérifier si les coordonnées sont dans les bornes \([0,MAX\_X]\) et \([0,MAX\_Y]\).
+    \item Transformer la coordonnée en indice et vérifier si l'indice de la position est plus petit que \texttt{MAX\_POSITIONS}.
+    \item Transformer la coordonnée en indice et vérifier si les positions \((x,y)\) à cet indice sont égales aux coordonnées \((x,y)\) de la position.
+\end{enumerate}
+Toutes ces méthodes ont une complexité en temps constante \(\mathcal{O}(1)\) relativement faible.
+Les deux premières peuvent sembler plus simples et plus efficaces pour la problématique, cependant nous avons opté pour la 3ème car elle permet de s'adapter à de potentiels changements de forme du plateau de jeu (voir section \hyperref[sec:ore]{\uline{orée rouge émerveillant}}).
+\subsubsection{Les positions voisines}
+Nous avons également implémenté la fonction permettant de lister les positions voisines d'une position donnée.\\
+Pour ce faire, dans un premier temps nous vérifions si la position récupérée en entrée est valide puis nous parcourons les 8 positions voisines possibles.
+Pour chacune d'entre elles, nous vérifions si elles sont valides et si c'est le cas nous les ajoutons à la liste des positions voisines.
+À la fin, si le nombre de voisins trouvés est inférieur à 8 nous complétons le tableau avec des positions invalides.\\
+Pour parcourir les positions voisines plusieurs algorithmes sont possibles~:
+\begin{itemize}
+    \item Parcourir chaque position allant de \((x-1,y-1)\) à \((x,y)\) à l'aide de deux boucles imbriquées.
+    \item Créer un tableau de déplacement contenant les coordonnées à ajouter à la position de départ et parcourir ce tableau. \\ \textit{Exemple de tableau : \texttt{[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]}}
+\end{itemize}
+Les deux méthodes ont une complexité en temps constante si l'on considère que le nombre de voisins est fixe et relativement faible.
+La deuxième méthode est cependant plus lisible et plus adaptable à un changement de nombre de voisins ou position relative des voisins.
+\subsection*{Les bâtiments et mines de ressources}
+\addcontentsline{toc}{subsection}{Les bâtiments et mines de ressources}
+Le jeu doit permettre de construire des bâtiments grâce aux ressources acquises, notamment acquises via les mines de ressources naturellement présentes sur la carte.\\ \\
+Pour les bâtiments, le besoin était le suivant : avoir un nom, un coût d'achat, un gain immédiat, un coût d'activation, une production et une position une fois placé.
+Les mines quant à elles ont aussi un nom, un gain immédiat et une production, et une position.
+À la différence des bâtiments, elles sont toutes construites par défaut et ont un coût d'activation nul.
+\begin{lstlisting}[language=C, backgroundcolor=\color{black!5}, frame=single, frameround=tttt, basicstyle=\ttfamily, breaklines=true, keywordstyle=\color{blue}, commentstyle=\color{green!50!black}, stringstyle=\color{red}]
+struct building_t {
+    char name[MAX_BUILDING_STR];
+    unsigned int value[NUM_RESOURCES];
+    unsigned int earns[NUM_RESOURCES];
+    unsigned int costs[NUM_RESOURCES];
+    unsigned int supplies[NUM_RESOURCES];
+    struct position_t* position;
+    unsigned int owner_id;
+    bool owned;
+    bool is_mine;
+};
+\end{lstlisting}
+\vspace{-0.25cm}
+\captionof{lstlisting}{Structure des bâtiments et des mines}
+\label{lst:building_structure}
+\vspace{0.5cm}
+Pour ces raisons, nous avons décidé de créer une structure \texttt{Building} (visible en listing \ref{lst:building_structure}) qui regroupe les mines et les bâtiments.
+\subsubsection{Les bâtiments simples}
+\label{sec:bat}
+Pour que les joueurs puissent choisir les bâtiments à construire, ils doivent les choisir parmi une liste contenant \(\frac{\texttt{MAX\_POSITIONS}}{3}\) bâtiments.\\
+Pour générer cette liste aléatoirement à partir d'un ensemble de bâtiments que nous avons prédéfini, nous avons réalisé la fonction \texttt{void available\_building(struct building\_t building[MAX\_AVAILABLE\_BUILDING])} qui renvoie une liste de bâtiments parmi un ensemble plus grand prédéfini.\\
+\subsubsection{Les mines}
+\label{sec:mines}
+Bien qu'étant des bâtiments, les mines sont des bâtiments particuliers.
+Elles sont toutes construites par défaut, pour cela nous avons implémenté la fonction \texttt{void place\_mines(struct board\_t *gb)}. \\
+Cette fonction sera rediscutée dans la section \hyperref[sec:mri]{\uline{Messires Roses irrédules}}, mais pour la première version nous avons implémenté l'algorithme suivant~:
+\begin{enumerate}
+    \setlength\itemsep{0.1em}
+    \item Lister l'ensemble des mines obligatoires (au nombre de 4)
+    \item Parcourir cette liste et pour chaque mine, générer une position aléatoire.
+    \item Tant que la position ne répond pas aux critères\footnote{Une mine doit être posée sur une position valide et libre, et possède un emplacement libre parmi ses voisins (pour éviter d'impacter les mines voisines celles-ci doivent avoir au moins 2 positions libres dans leurs voisins).}, on en génère une nouvelle (100 itérations maximum sinon la mine n'est pas posée).
+    \item On génère la mine à cette position.
+    \item On refait la même opération sur le nombre de mines restantes à poser en plus des 4 de base en générant aléatoirement le type de mine.
+\end{enumerate}
+La complexité de cette fonction est linéaire \(\mathcal{O}(n)\) en fonction du nombre \(n\) de mines à poser (sans considérer la fonction annexe de test de validité des positions).\\
+Cette méthode ne semble pas optimale, car elle est certes constante, mais peut faire jusqu'à 100 itérations pour chaque mine à poser et ne pas réussir à la poser. Elle sera discutée avec une autre méthode dans la section \hyperref[sec:mri]{\uline{Messires Roses irrédules}}.
+D'autres fonctions basiques telles que \texttt{make\_mine} et \texttt{is\_mine\_here} ont aussi été implémentées pour faciliter la manipulation des mines.
+
+\subsection*{Le plateau et la boucle de jeu}
+\addcontentsline{toc}{subsection}{Le plateau et la boucle de jeu}
+Afin d'organiser au mieux notre code, nous avons implémenté le plateau et la boucle de jeu de la manière suivante :
+\begin{itemize}
+    \setlength\itemsep{0.01em}
+    \item \textbf{\texttt{board.c}} contient les fonctions permettant d'initialiser et de manipuler le plateau de jeu.
+    \item \textbf{\texttt{game.c}} contient la boucle de jeu principale.
+    \item \textbf{\texttt{decision.c}} contient les fonctions permettant de prendre des décisions pour les joueurs.
+\end{itemize}
+Cette organisation est stratégique. Elle permet une représentation claire du rôle de chaque module, et une modification aisée de chaque partie du code sans impacter les autres.
+\subsubsection{Le plateau}
+Le plateau de jeu a été implémenté à l'aide de la structure \texttt{board\_t}, visible en listing \ref{lst:board-structure}, elle permet de stocker l'ensemble des joueurs et des bâtiments du plateau.\\
+\begin{lstlisting}[language=C, backgroundcolor=\color{black!5}, frame=single, frameround=tttt, basicstyle=\ttfamily, breaklines=true, keywordstyle=\color{blue}, commentstyle=\color{green!50!black}, stringstyle=\color{red},label={lst:board-structure}]
+struct board_t {
+    struct player_t players[MAX_PLAYERS];
+    struct building_t building[MAX_BUILDING];
+    unsigned int num_players;
+    unsigned int num_building;
+};
+\end{lstlisting}
+\vspace{-0.25cm}
+\captionof{lstlisting}{Structure du plateau}
+\label{lst:board_structure}
+\vspace{0.5cm}
+La fonction \texttt{init\_board} permet d'initialiser tous ses éléments :
+\begin{itemize}
+    \setlength\itemsep{0.1em}
+    \item Initialise les positions avec \texttt{init\_positions} (voir section \hyperref[sec:pos]{\uline{Les positions}}).
+    \item Initialise le nombre de joueurs selon les paramètres d'entrée.
+    \item Positionne les mines sur le plateau avec \texttt{place\_mines} (les enregistre dans la liste \texttt{building}) (voir section \hyperref[sec:mines]{\uline{Les mines}}).
+    \item Initialise les bâtiments disponibles avec \texttt{available\_building} dans la liste \texttt{building} (voir section \hyperref[sec:bat]{\uline{Les bâtiments simples}}).
+    \item Initialise les joueurs avec \texttt{init\_players} grâce à une structure \texttt{player\_t} prévue à cet effet.
+\end{itemize}
+Nous avons implémenté dans le fichier \texttt{board.c} les différentes fonctions permettant de manipuler les éléments du plateau.\\
+Pour les manipuler nous passons en paramètre de chacune de ces fonctions les identifiants uniques des "objets" afin d'éviter de manipuler des pointeurs.
+
+\subsubsection{La boucle de jeu}
+Le fichier \texttt{game.c} met en place la boucle de jeu dans la fonction \texttt{play\_game} qui prend en paramètre le plateau et le nombre de manches. Elle effectue l'ensemble des tours de jeu tant qu'il y a au moins 2 joueurs en lice.
+Elle initialise à chaque tour les décisions que vont prendre les joueurs grâce au fichier \texttt{decision.c} et élimine les joueurs qui ne peuvent plus répondre à leurs obligations. À la fin des manches, elle appelle la fonction \texttt{print\_score} qui calcule et affiche les scores des joueurs.
+
+\subsubsection{Les décisions}
+\label{sec:dec}
+Les joueurs peuvent prendre les décisions suivantes :
+\begin{itemize}
+ \setlength\itemsep{0.1em}
+\item Choisir la position de leur employé
+\item Construire un bâtiment ou récupérer des ressources
+\item Choisir un bâtiment
+\item Activer ou non un bâtiment
+\end{itemize}
+Les fonctions définies dans \texttt{decision.c} prennent en paramètre le plateau et l'identifiant du joueur pour retourner les choix qu'ils font.\\
+Ils ne manipulent pas directement le plateau afin que les décisions puissent être validées dans \texttt{game.c}. Cette organisation permet notamment de tester plusieurs implémentations différentes pour la prise de décision.\\ \\
+L'ensemble des fonctions de \texttt{decision.c} réalise un choix de façon aléatoire, à l'exception du choix de la position des employés qui est prévu pour maximiser le nombre de ressources gagnées.\\
+Pour réaliser cette fonction nous avons utilisé l'algorithme présenté en listing \ref{lst:algo_choix_position}. \\
+\begin{lstlisting}[style=customstyle]
+max_ressource <- -1;
+optimal <- NULL;
+pour i allant de 0 a MAX_POSITIONS :
+    position <- cree_une_position'('i')';
+    total_ressource <- 0;
+    si '('position_libre'('position')'')' :
+        liste_voisins = lister_voisins'('position')';
+        pour '('j allant de 0 a NB_VOISINS')' :
+            si '('batiment_id'('liste_voisins[j]')' != -1')' :
+                si '('est_mine'('batiment_id'('liste_voisins[j]')'')'')' :
+                    total_ressource <- total_ressource + recup_ressource'('position')';
+                fin si;
+            fin si;
+        fin pour;
+    fin si;
+    si '('total_ressource > max_ressource')' :
+        max_ressource <- total_ressource;
+        optimal <- position;
+    fin si;
+fin pour;
+retourner optimal;
+\end{lstlisting}
+\captionof{lstlisting}{Algorithme de choix de position d'employé}
+\label{lst:algo_choix_position}
+\vspace{0.5cm}
+La complexité temporelle de cette fonction est principalement déterminée par les deux boucles imbriquées.
+Si nous notons \(n\) comme MAX\_POSITIONS et NB\_VOISINS fixé à 8, la complexité temporelle est de \(\mathcal{O}(n)\).\\
+Nous discuterons d'une nouvelle implémentation de cette fonction dans la section \hyperref[sec:bmh]{\uline{Bel matador hermétique}}.

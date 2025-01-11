@@ -1,0 +1,108 @@
+\usepackage{svg}
+\usepackage{tikz}
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}
+\usepackage[T1]{fontenc}
+\usepackage{xcolor}
+\usepackage[osf]{libertinus}
+\usepackage{fancyhdr}
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2cm,right=2cm]{geometry}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{ulem}
+\usepackage{etoolbox}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{lastpage}
+
+\usepackage{cite}  
+
+\usetikzlibrary{positioning}
+
+% Déclarations de variables
+\renewcommand{\bibname}{\centering Bibliographie}
+\newcommand{\projet}{Projet d'algorithmique et de programmation n°1}
+\newcommand{\prenomnomA}{Mélissa Colin}
+\newcommand{\prenomnomB}{Benjamin Chew}
+\newcommand{\referent}{Amina Guermouche}
+\newcommand{\responsable}{David Renault}
+\newcommand{\nomprojet}{Bourgarde}
+\setsvg{inkscapeexe=inkscape}
+
+% Définition de la couleur des barres
+\definecolor{enseirb}{RGB}{0, 117, 191}
+\definecolor{darkgreen}{RGB}{0, 100, 0}
+
+% Configuration verbatim
+\lstdefinestyle{customstyle}{
+    language=,
+    basicstyle=\ttfamily\small,       
+    keywords={pour,si,fin,tant, allant, de, retourner, a, que, sinon}, 
+    keywordstyle=\color{red},         
+    keywords=[2]{cree_une_position, position_libre, lister_voisins, est_mine, batiment_id, recup_ressource, lister_positions_libres , calculer_ressources, creer_candidat, deplacer_curseur, plus_grand_ou_incomp, ajouter_candidat, selectionner_positions_optimales, calculer_ressources_candidat},    
+    keywordstyle=[2]\color{blue},       
+    keywords=[3]{et, fonction},
+    keywordstyle=[3]\color{black},          
+    identifierstyle=\color{gray},     
+    moredelim=**[is][\color{darkgreen}]{'}{'}, 
+    frame=single,                     
+    rulecolor=\color{black},          
+    breaklines=true,                  
+    postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space}, % Add a symbol at the break
+    framexleftmargin=5pt,
+    framextopmargin=5pt,
+    framexbottommargin=5pt,
+    framexrightmargin=5pt,
+    frameround=tttt % Rounded corners
+}
+
+% Configuration de l'en-tête et du pied de page
+\pagestyle{fancy}
+\fancyhf{}
+
+% En-tête
+\fancyhead[L]{\prenomnomA}
+\fancyhead[C]{\textbf{\nomprojet}}
+\fancyhead[R]{\prenomnomB}
+
+% Pied de page
+\fancyfoot[C]{\color{black}{\thepage\ /\ \pageref{LastPage}}}
+
+% Supprime les lignes par défaut des en-têtes et pieds de page
+\renewcommand{\headrule}{
+    \vspace{5pt}
+    \color{enseirb}\hrule width\headwidth height\headrulewidth
+    \vspace{5cm}
+}
+\renewcommand{\footrule}{
+    \vspace{18pt}
+    \color{enseirb}\hrule width\headwidth height\footrulewidth
+    \vspace{5pt}
+}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Configuration des titres
+\titleformat{\section}[block]
+    {\normalfont\huge\bfseries\centering}{\thesection}{1em}{}
+\titleformat{\subsection}[block]
+    {\normalfont\Large\bfseries}{\thesubsection}{1em}{}
+
+% Configuration de la table des matières
+\renewcommand{\cftsecfont}{\bfseries\large}
+\renewcommand{\cftsubsecfont}{\normalsize}
+\setlength{\cftbeforesecskip}{0.5em}
+\setlength{\cftbeforesubsecskip}{0.25em}
+\renewcommand{\contentsname}{Table des matières}
+
+% Configuration des légendes des figures
+\usepackage[font=small, it]{caption}
+
+% Commandes personnalisées
+\newcommand{\refsec}[1]{\nameref{#1}}
+
+

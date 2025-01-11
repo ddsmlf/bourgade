@@ -1,0 +1,54 @@
+# Compiled object files
+*.o
+
+# Compiled dynamic libraries
+*.so
+
+# Compiled static libraries
+*.a
+
+# Executable files
+*.out
+*.exe
+
+# Debug files
+*.dSYM/
+*.dmp
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.swp
+
+# IDE specific files
+.vscode/
+.idea/
+
+project
+test_positions
+testRessource
+test/test_exec
+./test_positions
+./testRessource
+./project
+*build
+# valgrind
+*.xml
+*/main.pdf
+*main*
+# compte rendu 
+./compte_rendu/*
+./compte_rendu
+*.aux
+*.log
+*.fls 
+*.fdb_latexmk
+*.synctex.gz
+*.blg
+*.toc
+*.bbl
+
+/compte-rendu/main.pdf
